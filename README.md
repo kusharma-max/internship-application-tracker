@@ -6,14 +6,14 @@ A lightweight, user-centric dashboard designed to streamline the internship hunt
 
 Key Features:
 
-Live Analytics: Instant updates on total applications and offer rates.
+1. Live Analytics: Instant updates on total applications and offer rates.
 
-Status Management: CRUD functionality to track applications from "Applied" to "Offer."
+2. Status Management: CRUD functionality to track applications from "Applied" to "Offer."
 
-Persistence: Uses LocalStorage to keep data safe across browser refreshes.
+3. Persistence: Uses LocalStorage to keep data safe across browser refreshes.
 
 Future Roadmap (Scalability):
 
-Transition from LocalStorage to SQL Server for centralized data management.
+1. Transition from LocalStorage to SQL Server for centralized data management.
 
-Integrate a .NET Web API to handle secure user authentication and multi-device syncing.
+2. Integrate a .NET Web API to handle secure user authentication and multi-device syncing.
