@@ -1,5 +1,7 @@
 # internship-application-tracker
 🚀 Internship Application Tracker
+
+
 A lightweight, user-centric dashboard designed to streamline the internship hunt.
 
 Key Features:
