@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Internship Tracker - MVP</title>
+    <style>
+        /* A more custom, hand-picked style */
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        /* Dashboard Boxes */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-btn {
+            background: white;
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .stat-btn:hover { border-color: #cbd5e0; }
+        .stat-btn.active { border-color: #4299e1; background: #ebf8ff; }
+        .stat-btn h2 { margin: 0; font-size: 24px; color: #2d3748; }
+        .stat-btn span { font-size: 12px; color: #718096; text-transform: uppercase; }
+
+        /* Input Bar */
+        .add-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .btn-save {
+            background: #48bb78;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px 25px;
+        }
+
+        /* The List */
+        .app-item {
+            background: white;
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid #cbd5e0;
+        }
+
+        /* Status Colors */
+        .applied { border-left-color: #4299e1; }
+        .interview { border-left-color: #ed8936; }
+        .rejected { border-left-color: #f56565; }
+        .offer { border-left-color: #48bb78; }
+
+        .details h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .details p { margin: 0; color: #666; font-size: 14px; }
+        
+        .controls { display: flex; align-items: center; gap: 15px; }
+        .trash-link { color: #e53e3e; cursor: pointer; font-size: 13px; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="font-weight: 800; letter-spacing: -1px;">My Applications</h1>
+
+    <div class="stats-row" id="filterArea">
+        <div class="stat-btn active" onclick="setFilter('All', this)">
+            <h2 id="total-val">0</h2>
+            <span>Total</span>
+        </div>
+        <div class="stat-btn" onclick="setFilter('Applied', this)">
+            <h2 id="applied-val">0</h2>
+            <span>Applied</span>
+        </div>
+        <div class="stat-btn" onclick="setFilter('Interview', this)">
+            <h2 id="interview-val">0</h2>
+            <span>Interview</span>
+        </div>
+        <div class="stat-btn" onclick="setFilter('Offer', this)">
+            <h2 id="offer-val">0</h2>
+            <span>Offers</span>
+        </div>
+    </div>
+
+    <div class="add-section">
+        <input type="text" id="cName" placeholder="Company" style="flex:2">
+        <input type="text" id="rName" placeholder="Role" style="flex:2">
+        <select id="sVal">
+            <option>Applied</option>
+            <option>Interview</option>
+            <option>Rejected</option>
+            <option>Offer</option>
+        </select>
+        <button class="btn-save" onclick="saveNew()">Add</button>
+    </div>
+
+    <div id="listBody"></div>
+</div>
+
+<script>
+    // Local storage data
+    let myApps = JSON.parse(localStorage.getItem('intern_data')) || [];
+    let currentTab = 'All';
+
+    function saveNew() {
+        const co = document.getElementById('cName').value;
+        const ro = document.getElementById('rName').value;
+        const st = document.getElementById('sVal').value;
+
+        if(!co || !ro) return alert("Please add company and role!");
+
+        const newEntry = {
+            id: 'id_' + Math.random().toString(36).substr(2, 9),
+            company: co,
+            role: ro,
+            status: st,
+            date: new Date().toLocaleDateString()
+        };
+
+        myApps.push(newEntry);
+        
+        // Clear fields
+        document.getElementById('cName').value = '';
+        document.getElementById('rName').value = '';
+        
+        refreshUI();
+    }
+
+    function removeApp(id) {
+        myApps = myApps.filter(a => a.id !== id);
+        refreshUI();
+    }
+
+    function updateStatus(id, newStatus) {
+        myApps.forEach(a => {
+            if(a.id === id) a.status = newStatus;
+        });
+        refreshUI();
+    }
+
+    function setFilter(type, el) {
+        currentTab = type;
+        // Simple UI toggle
+        document.querySelectorAll('.stat-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        showCards();
+    }
+
+    function refreshUI() {
+        localStorage.setItem('intern_data', JSON.stringify(myApps));
+        
+        // Update numbers
+        document.getElementById('total-val').innerText = myApps.length;
+        document.getElementById('applied-val').innerText = myApps.filter(x => x.status === 'Applied').length;
+        document.getElementById('interview-val').innerText = myApps.filter(x => x.status === 'Interview').length;
+        document.getElementById('offer-val').innerText = myApps.filter(x => x.status === 'Offer').length;
+
+        showCards();
+    }
+
+    function showCards() {
+        const main = document.getElementById('listBody');
+        main.innerHTML = '';
+
+        let filtered = myApps;
+        if(currentTab !== 'All') {
+            filtered = myApps.filter(x => x.status === currentTab);
+        }
+
+        filtered.forEach(app => {
+            const div = document.createElement('div');
+            div.className = `app-item ${app.status.toLowerCase()}`;
+            
+            div.innerHTML = `
+                <div class="details">
+                    <h3>${app.company}</h3>
+                    <p><strong>${app.role}</strong> • ${app.date}</p>
+                </div>
+                <div class="controls">
+                    <select onchange="updateStatus('${app.id}', this.value)">
+                        <option ${app.status==='Applied'?'selected':''}>Applied</option>
+                        <option ${app.status==='Interview'?'selected':''}>Interview</option>
+                        <option ${app.status==='Rejected'?'selected':''}>Rejected</option>
+                        <option ${app.status==='Offer'?'selected':''}>Offer</option>
+                    </select>
+                    <span class="trash-link" onclick="removeApp('${app.id}')">Delete</span>
+                </div>
+            `;
+            main.appendChild(div);
+        });
+    }
+
+    // Run on page load
+    window.onload = refreshUI;
+
+</script>
+</body>
+</html>
